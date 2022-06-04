@@ -1,4 +1,4 @@
-package com.example.cat_as_a_service
+package com.example.cat_as_a_service.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -19,9 +19,15 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.cat_as_a_service.R
 import com.example.cat_as_a_service.ui.theme.CuteCatsTheme
+import javax.inject.Inject
 
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var mainViewModel: MainViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
