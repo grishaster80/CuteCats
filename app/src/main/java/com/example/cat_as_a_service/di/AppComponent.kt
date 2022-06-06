@@ -4,8 +4,10 @@ import android.content.Context
 import com.example.cat_as_a_service.ui.MainActivity
 import dagger.BindsInstance
 import dagger.Component
+import javax.inject.Singleton
 
-@Component(modules = [StorageModule::class])
+@Singleton
+@Component(modules = [StorageModule::class, AppSubcomponents::class])
 interface AppComponent {
 
     @Component.Factory
@@ -13,5 +15,5 @@ interface AppComponent {
         fun create(@BindsInstance context: Context): AppComponent
     }
 
-    fun inject(activity: MainActivity)
+    fun subComponentSample(): SubComponentSample.Factory
 }
