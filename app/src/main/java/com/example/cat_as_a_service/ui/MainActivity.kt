@@ -68,8 +68,10 @@ fun CuteCatsScreen() {
         mutableStateOf(false)
     }
     if (!isImageLoaded.value) {
-        Box(modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
             CircularProgressIndicator()
         }
     }
@@ -78,11 +80,22 @@ fun CuteCatsScreen() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        if (isImageLoaded.value) {
+            IconButton(onClick = { Log.e("@@@","test")}) {
+                Icon(
+                    painterResource(id = R.drawable.ic_star),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .height(24.dp)
+                        .width(24.dp)
+                )
+            }
+        }
         AsyncImage(
             model = "${NetworkConstants.BASE_URL}${NetworkConstants.RANDOM_CAT}?${randomNumber.value}",
             contentDescription = "Cat picture",
             onState = {
-                when(it){
+                when (it) {
                     is AsyncImagePainter.State.Loading -> {
                         isImageLoaded.value = false
                     }
@@ -96,7 +109,7 @@ fun CuteCatsScreen() {
             modifier = Modifier.padding(vertical = 24.dp),
             onClick = {
                 randomNumber.value = (0..100000).random()
-                Log.e("@@@","here ${randomNumber.value}")
+                Log.e("@@@", "here ${randomNumber.value}")
             }
         ) {
             Text("Load Cat")
