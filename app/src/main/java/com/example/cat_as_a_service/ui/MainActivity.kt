@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.magnifier
 import androidx.compose.material.*
@@ -14,8 +15,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -80,39 +83,52 @@ fun CuteCatsScreen() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (isImageLoaded.value) {
-            IconButton(onClick = { Log.e("@@@","test")}) {
-                Icon(
-                    painterResource(id = R.drawable.ic_star),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .height(24.dp)
-                        .width(24.dp)
-                )
-            }
-        }
-        AsyncImage(
-            model = "${NetworkConstants.BASE_URL}${NetworkConstants.RANDOM_CAT}?${randomNumber.value}",
-            contentDescription = "Cat picture",
-            onState = {
-                when (it) {
-                    is AsyncImagePainter.State.Loading -> {
-                        isImageLoaded.value = false
-                    }
-                    is AsyncImagePainter.State.Success -> {
-                        isImageLoaded.value = true
+        Box(Modifier.size(500.dp)) {
+            AsyncImage(
+                model = "${NetworkConstants.BASE_URL}${NetworkConstants.RANDOM_CAT}?${randomNumber.value}",
+                contentDescription = "Cat picture",
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(330.dp),
+                contentScale = ContentScale.Crop,
+                onState = {
+                    when (it) {
+                        is AsyncImagePainter.State.Loading -> {
+                            isImageLoaded.value = false
+                        }
+                        is AsyncImagePainter.State.Success -> {
+                            isImageLoaded.value = true
+                        }
                     }
                 }
+            )
+
+            if (isImageLoaded.value) {
+                Button(
+                    modifier = Modifier
+                        .padding(vertical = 24.dp)
+                        .align(Alignment.BottomCenter),
+                    onClick = {
+                        randomNumber.value = (0..100000).random()
+                        Log.e("@@@", "here ${randomNumber.value}")
+                    }
+                ) {
+                    Text("Load Cat")
+                }
+
+                IconButton(modifier = Modifier.align(Alignment.TopEnd).offset(y=80.dp, x = -25.dp),
+                    onClick = { Log.e("@@@", "test") }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_star),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .height(28.dp)
+                            .width(28.dp)
+                            .background(Color.Transparent)
+                    )
+                }
             }
-        )
-        Button(
-            modifier = Modifier.padding(vertical = 24.dp),
-            onClick = {
-                randomNumber.value = (0..100000).random()
-                Log.e("@@@", "here ${randomNumber.value}")
-            }
-        ) {
-            Text("Load Cat")
+
         }
     }
 }
