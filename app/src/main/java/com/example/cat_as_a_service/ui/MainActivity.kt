@@ -10,6 +10,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.magnifier
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.sharp.Favorite
+import androidx.compose.material.icons.twotone.Favorite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,6 +75,9 @@ fun CuteCatsScreen() {
     val isImageLoaded = remember {
         mutableStateOf(false)
     }
+    val isSelected = remember {
+        mutableStateOf(false)
+    }
     if (!isImageLoaded.value) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -110,22 +118,35 @@ fun CuteCatsScreen() {
                         .align(Alignment.BottomCenter),
                     onClick = {
                         randomNumber.value = (0..100000).random()
+                        isSelected.value = false
                         Log.e("@@@", "here ${randomNumber.value}")
                     }
                 ) {
                     Text("Load Cat")
                 }
-
-                IconButton(modifier = Modifier.align(Alignment.TopEnd).offset(y=80.dp, x = -25.dp),
-                    onClick = { Log.e("@@@", "test") }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_star),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .height(28.dp)
-                            .width(28.dp)
-                            .background(Color.Transparent)
-                    )
+                IconButton(modifier = Modifier.align(Alignment.TopEnd).offset(y=80.dp, x = -28.dp),
+                    onClick = {
+                        isSelected.value = !isSelected.value
+                    }) {
+                    if (isSelected.value) {
+                        Icon(
+                            Icons.Filled.Favorite,
+                            tint = Color.Red,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .height(36.dp)
+                                .width(36.dp)
+                        )
+                    } else {
+                        Icon(
+                            Icons.Filled.Favorite,
+                            tint = Color.DarkGray,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .height(36.dp)
+                                .width(36.dp)
+                        )
+                    }
                 }
             }
 
