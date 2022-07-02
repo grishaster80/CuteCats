@@ -1,42 +1,38 @@
 package com.example.cat_as_a_service.ui
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.magnifier
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.outlined.Favorite
-import androidx.compose.material.icons.sharp.Favorite
-import androidx.compose.material.icons.twotone.Favorite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.imageResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.ImageLoader
+import androidx.core.graphics.drawable.toBitmap
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
+import coil.request.ImageRequest
 import com.example.cat_as_a_service.MyApplication
-import com.example.cat_as_a_service.R
 import com.example.cat_as_a_service.network.NetworkConstants
 import com.example.cat_as_a_service.ui.theme.CuteCatsTheme
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStream
 import javax.inject.Inject
-import kotlin.random.Random
+
 
 class MainActivity : ComponentActivity() {
 
@@ -54,7 +50,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    CuteCatsScreen()
+                    CuteCatsScreen(context = this)
                 }
             }
         }
@@ -67,10 +63,10 @@ fun Greeting(name: String) {
 }
 
 @Composable
-fun CuteCatsScreen() {
+fun CuteCatsScreen(context: Context) {
 
     val randomNumber = remember {
-        mutableStateOf(0)
+        mutableStateOf((0..100000).random())
     }
     val isImageLoaded = remember {
         mutableStateOf(false)
@@ -78,6 +74,9 @@ fun CuteCatsScreen() {
     val isSelected = remember {
         mutableStateOf(false)
     }
+
+    var currentBitmap: Bitmap? = null
+
     if (!isImageLoaded.value) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -92,8 +91,15 @@ fun CuteCatsScreen() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(Modifier.size(500.dp)) {
+            val request = ImageRequest.Builder(context)
+                .data("${NetworkConstants.BASE_URL}${NetworkConstants.RANDOM_CAT}?${randomNumber.value}")
+                .crossfade(true)
+                .listener { request, result ->
+                    currentBitmap = result.drawable.toBitmap()
+                }
+                .build()
             AsyncImage(
-                model = "${NetworkConstants.BASE_URL}${NetworkConstants.RANDOM_CAT}?${randomNumber.value}",
+                model = request,
                 contentDescription = "Cat picture",
                 modifier = Modifier
                     .align(Alignment.Center)
@@ -122,9 +128,22 @@ fun CuteCatsScreen() {
                         Log.e("@@@", "here ${randomNumber.value}")
                     }
                 ) {
-                    Text("Load Cat")
+                    Text("Next Cat")
                 }
-                IconButton(modifier = Modifier.align(Alignment.TopEnd).offset(y=80.dp, x = -28.dp),
+                Button(
+                    modifier = Modifier
+                        .padding(vertical = 24.dp)
+                        .align(Alignment.BottomCenter)
+                        .offset(y = 60.dp),
+                    onClick = {
+                        saveImageToDownloadFolder("Cat_${randomNumber.value}.png",currentBitmap!!, context)
+                    }
+                ) {
+                    Text("Download Cat")
+                }
+                IconButton(modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(y = 80.dp, x = -28.dp),
                     onClick = {
                         isSelected.value = !isSelected.value
                     }) {
@@ -151,6 +170,31 @@ fun CuteCatsScreen() {
             }
 
         }
+    }
+}
+
+fun saveImageToDownloadFolder(imageFile: String, ibitmap: Bitmap, context: Context) {
+    try {
+        val filePath = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+            imageFile
+        )
+        val outputStream: OutputStream = FileOutputStream(filePath)
+        ibitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+        outputStream.flush()
+        outputStream.close()
+        Toast.makeText(
+            context,
+            imageFile + "Sucessfully saved in Download Folder",
+            Toast.LENGTH_SHORT
+        ).show()
+    } catch (e: Exception) {
+        Toast.makeText(
+            context,
+            "Error while saving a cat ${e}",
+            Toast.LENGTH_SHORT
+        ).show()
+        e.printStackTrace()
     }
 }
 
