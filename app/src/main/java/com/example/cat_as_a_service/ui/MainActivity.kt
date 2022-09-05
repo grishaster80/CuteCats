@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -23,169 +22,32 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.request.ImageRequest
 import com.example.cat_as_a_service.MyApplication
 import com.example.cat_as_a_service.network.NetworkConstants
+import com.example.cat_as_a_service.repository.CatRepository
 import com.example.cat_as_a_service.ui.theme.CuteCatsTheme
-import kotlinx.coroutines.*
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
-import java.time.LocalDateTime
 import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var mainViewModel: MainViewModel
-
     override fun onCreate(savedInstanceState: Bundle?) {
-        (application as MyApplication).appComponent.subComponentSample().create().inject(this)
         super.onCreate(savedInstanceState)
-
-        var imagesTotalSize = 0
-        var imagesTotalCount = 0
-
-        var videosTotalSize = 0
-        var videosTotalCount = 0
-        applicationContext.contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            arrayOf(
-                MediaStore.Images.Media._ID,
-                MediaStore.Images.Media.DISPLAY_NAME,
-                MediaStore.Images.Media.SIZE
-            ),
-            null,
-            null,
-            "${MediaStore.Images.Media.DISPLAY_NAME} ASC"
-        ).use {
-            var id = it!!.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-            var name = it.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
-            var size = it.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
-            while (it.moveToNext()) {
-
-                var idd = it.getLong(id)
-                var names = it.getString(name)
-                var sizes = it.getInt(size) / 1024 / 1024
-                imagesTotalCount++
-                imagesTotalSize += sizes
-
-            }
-        }
-
-        applicationContext.contentResolver.query(
-            MediaStore.Images.Media.INTERNAL_CONTENT_URI,
-            arrayOf(
-                MediaStore.Images.Media._ID,
-                MediaStore.Images.Media.DISPLAY_NAME,
-                MediaStore.Images.Media.SIZE
-            ),
-            null,
-            null,
-            "${MediaStore.Images.Media.DISPLAY_NAME} ASC"
-        ).use {
-            var id = it!!.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-            var name = it.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
-            var size = it.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
-            Log.e("@@@","images request start ${LocalDateTime.now().toString()}")
-            while (it.moveToNext()) {
-
-                var idd = it.getLong(id)
-                var names = it.getString(name)
-                var sizes = it.getInt(size) / 1024 / 1024
-                imagesTotalCount++
-                imagesTotalSize += sizes
-
-            }
-            if (!it.moveToNext()){
-                Log.e("@@@","images request end ${LocalDateTime.now().toString()}")
-            }
-        }
-
-        applicationContext.contentResolver.query(
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-            arrayOf(
-                MediaStore.Video.Media._ID,
-                MediaStore.Video.Media.DISPLAY_NAME,
-                MediaStore.Video.Media.SIZE
-            ),
-            null,
-            null,
-            "${MediaStore.Video.Media.DISPLAY_NAME} ASC"
-        ).use {
-            var id = it!!.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-            var name = it.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
-            var size = it.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
-            while (it.moveToNext()) {
-
-                var idd = it.getLong(id)
-                var names = it.getString(name)
-                var sizes = it.getInt(size) / 1024 /1024
-
-                videosTotalCount++
-                videosTotalSize += sizes
-            }
-        }
-
-        applicationContext.contentResolver.query(
-            MediaStore.Video.Media.INTERNAL_CONTENT_URI,
-            arrayOf(
-                MediaStore.Video.Media._ID,
-                MediaStore.Video.Media.DISPLAY_NAME,
-                MediaStore.Video.Media.SIZE
-            ),
-            null,
-            null,
-            "${MediaStore.Video.Media.DISPLAY_NAME} ASC"
-        ).use {
-            var id = it!!.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-            var name = it.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
-            var size = it.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
-            Log.e("@@@","videos request start ${LocalDateTime.now().toString()}")
-            while (it.moveToNext()) {
-
-                var idd = it.getLong(id)
-                var names = it.getString(name)
-                var sizes = it.getInt(size) / 1024 /1024
-
-                videosTotalCount++
-                videosTotalSize += sizes
-            }
-            if (!it.moveToNext()) {
-                Log.e("@@@","videos request end ${LocalDateTime.now().toString()}")
-            }
-        }
-
-        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-            delay(1000)
-            Log.e("@@@","Images size $imagesTotalSize mb")
-            Log.e("@@@","Images count $imagesTotalCount")
-            Log.e("@@@","Videos size $videosTotalSize mb")
-            Log.e("@@@","Videos count $videosTotalCount")
-        }
-
-
-
-
-
-
-
-
-
-
-        mainViewModel.test()
         setContent {
             CuteCatsTheme {
                 // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
-                ) {
-                    CuteCatsScreen(context = this)
-                }
+                CuteCatsScreen(context = this, hiltViewModel())
             }
         }
     }
@@ -197,7 +59,7 @@ fun Greeting(name: String) {
 }
 
 @Composable
-fun CuteCatsScreen(context: Context) {
+fun CuteCatsScreen(context: Context, viewModel: MainViewModel) {
 
     val randomNumber = remember {
         mutableStateOf((0..100000).random())
@@ -290,6 +152,7 @@ fun CuteCatsScreen(context: Context) {
                                 .height(36.dp)
                                 .width(36.dp)
                         )
+                        viewModel.saveCatImage(currentBitmap)
                     } else {
                         Icon(
                             Icons.Filled.Favorite,
@@ -307,6 +170,7 @@ fun CuteCatsScreen(context: Context) {
     }
 }
 
+//TODO move to ViewModel at least
 fun saveImageToDownloadFolder(imageFile: String, ibitmap: Bitmap, context: Context) {
     try {
         val filePath = File(
