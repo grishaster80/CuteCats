@@ -1,6 +1,7 @@
 package com.example.cat_as_a_service.ui
 
 import android.graphics.Bitmap
+import android.os.Looper
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,6 +20,8 @@ class MainViewModel @Inject constructor(val catRepository: CatRepository) : View
 
     fun saveCatImage(catBitmap: Bitmap?) {
         viewModelScope.launch {
+            Log.e("@@@","${Thread.currentThread()}")
+            Log.e("@@@","${Looper.myLooper() == Looper.getMainLooper()}")
             val bos: ByteArrayOutputStream = object : ByteArrayOutputStream(){}
             catBitmap?.compress(Bitmap.CompressFormat.PNG, 100, bos)
             val catByteArray = bos.toByteArray()

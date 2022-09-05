@@ -13,8 +13,10 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -71,7 +73,7 @@ fun CuteCatsScreen(context: Context, viewModel: MainViewModel) {
         mutableStateOf(false)
     }
 
-    var currentBitmap: Bitmap? = null
+    var currentBitmap: Bitmap? by remember { mutableStateOf(null) }
 
     if (!isImageLoaded.value) {
         Box(
@@ -142,6 +144,7 @@ fun CuteCatsScreen(context: Context, viewModel: MainViewModel) {
                     .offset(y = 80.dp, x = -28.dp),
                     onClick = {
                         isSelected.value = !isSelected.value
+                        viewModel.saveCatImage(currentBitmap)
                     }) {
                     if (isSelected.value) {
                         Icon(
@@ -152,7 +155,6 @@ fun CuteCatsScreen(context: Context, viewModel: MainViewModel) {
                                 .height(36.dp)
                                 .width(36.dp)
                         )
-                        viewModel.saveCatImage(currentBitmap)
                     } else {
                         Icon(
                             Icons.Filled.Favorite,
