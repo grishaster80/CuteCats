@@ -117,7 +117,7 @@ fun CuteCatsScreen(context: Context, viewModel: MainViewModel) {
                 val infiniteTransition = rememberInfiniteTransition()
                 val scale1 = infiniteTransition.animateFloat(
                     0.7f,
-                    0.75f,
+                    0.8f,
                     // No offset for the 1st animation
                     infiniteRepeatable(tween(600), RepeatMode.Reverse)
                 )
