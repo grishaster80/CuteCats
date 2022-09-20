@@ -1,11 +1,8 @@
 package com.example.cat_as_a_service.ui
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -15,7 +12,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -23,7 +22,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
@@ -32,9 +30,6 @@ import com.example.cat_as_a_service.R
 import com.example.cat_as_a_service.network.NetworkConstants
 import com.example.cat_as_a_service.ui.theme.CuteCatsTheme
 import dagger.hilt.android.AndroidEntryPoint
-import java.io.File
-import java.io.FileOutputStream
-import java.io.OutputStream
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -43,7 +38,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             CuteCatsTheme {
-                // A surface container using the 'background' color from the theme
                 CuteCatsScreen(context = this, hiltViewModel())
             }
         }
@@ -69,8 +63,6 @@ fun CuteCatsScreen(context: Context, viewModel: MainViewModel) {
         mutableStateOf(false)
     }
 
-    var currentBitmap: Bitmap? by remember { mutableStateOf(null) }
-
     if (!isImageLoaded.value) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -88,9 +80,6 @@ fun CuteCatsScreen(context: Context, viewModel: MainViewModel) {
             val request = ImageRequest.Builder(context)
                 .data("${NetworkConstants.BASE_URL}${NetworkConstants.RANDOM_CAT}?${randomNumber.value}")
                 .crossfade(true)
-                .listener { request, result ->
-                    currentBitmap = result.drawable.toBitmap()
-                }
                 .build()
 
             AsyncImage(
@@ -111,14 +100,11 @@ fun CuteCatsScreen(context: Context, viewModel: MainViewModel) {
                     }
                 }
             )
-
             if (isImageLoaded.value) {
-
                 val infiniteTransition = rememberInfiniteTransition()
                 val scale1 = infiniteTransition.animateFloat(
-                    0.7f,
-                    0.8f,
-                    // No offset for the 1st animation
+                    0.65f,
+                    0.85f,
                     infiniteRepeatable(tween(600), RepeatMode.Reverse)
                 )
                 Image(
@@ -137,47 +123,9 @@ fun CuteCatsScreen(context: Context, viewModel: MainViewModel) {
                             Log.e("@@@", "here ${randomNumber.value}")
                         },
                     contentDescription = "fetch new cat")
-
-//                Button(
-//                    modifier = Modifier
-//                        .padding(vertical = 24.dp)
-//                        .align(Alignment.BottomCenter)
-//                        .offset(y = 60.dp),
-//                    onClick = {
-//                        saveImageToDownloadFolder("Cat_${randomNumber.value}.png",currentBitmap!!, context)
-//                    }
-//                ) {
-//                    Text("Download Cat")
-//                }
             }
 
         }
-    }
-}
-
-//TODO move to ViewModel at least
-fun saveImageToDownloadFolder(imageFile: String, ibitmap: Bitmap, context: Context) {
-    try {
-        val filePath = File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-            imageFile
-        )
-        val outputStream: OutputStream = FileOutputStream(filePath)
-        ibitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-        outputStream.flush()
-        outputStream.close()
-        Toast.makeText(
-            context,
-            imageFile + "Sucessfully saved in Download Folder",
-            Toast.LENGTH_SHORT
-        ).show()
-    } catch (e: Exception) {
-        Toast.makeText(
-            context,
-            "Error while saving a cat ${e}",
-            Toast.LENGTH_SHORT
-        ).show()
-        e.printStackTrace()
     }
 }
 
